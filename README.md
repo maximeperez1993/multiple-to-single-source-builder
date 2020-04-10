@@ -5,3 +5,5 @@ Aggregate multiple source code files into a single one. (Final file is compatibl
 
 Add a config file aggregate.cfg at the same level of the jar with property playerPath:
 playerPath=./code-royal/src/main/java/fr/mperez/Player.java
+outputPath=./target/Player.java
+copyToClipboard=true

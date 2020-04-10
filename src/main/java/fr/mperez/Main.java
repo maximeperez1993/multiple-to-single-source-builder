@@ -1,28 +1,49 @@
 package fr.mperez;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Optional;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Properties;
 
 public class Main {
 
     private static final String CONFIG_FILE_PATH = "./aggregate.cfg";
     private static final String PLAYER_PATH_PROPERTY = "playerPath";
+    private static final String OUTPUT_PATH_PROPERTY = "outputPath";
+    private static final String COPY_TO_CLIPBOARD_BOOLEAN_PROPERTY = "copyToClipboard";
 
     public static void main(String[] args) throws Exception {
-        String playerPath = Main.readPath().orElseThrow(() -> new IllegalStateException("Missing or empty property " + PLAYER_PATH_PROPERTY));
+        Config config = new Config(readConfigFile());
 
-        System.out.println(new Aggregator(playerPath).build());
+        String playerPath = config.read(PLAYER_PATH_PROPERTY);
+        String finalContent = new Aggregator(playerPath).build();
+
+        String outputPath = config.read(OUTPUT_PATH_PROPERTY);
+        Files.write(Paths.get(outputPath), finalContent.getBytes(), StandardOpenOption.CREATE);
+
+        if (config.readAsBoolean(COPY_TO_CLIPBOARD_BOOLEAN_PROPERTY)) {
+            copyToClipboard(finalContent);
+        }
     }
 
-    private static Optional<String> readPath() {
+    private static void copyToClipboard(String content) {
+        StringSelection stringSelection = new StringSelection(content);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, null);
+    }
+
+    private static Properties readConfigFile() {
         Properties configFile = new Properties();
         try {
             configFile.load(new FileReader(CONFIG_FILE_PATH));
-            return Optional.ofNullable(configFile.getProperty(PLAYER_PATH_PROPERTY));
+            return configFile;
         } catch (IOException ex) {
-            throw new IllegalStateException(String.format("Need %s file with property %s", CONFIG_FILE_PATH, PLAYER_PATH_PROPERTY));
+            throw new IllegalStateException("Need config file " + CONFIG_FILE_PATH);
         }
     }
 
