@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -25,14 +27,23 @@ public class Aggregator {
         this.playerFile = this.playerFilePath.getFileName().toString();
     }
 
-    public String build() throws IOException {
-        String mainCode = readFileAsString(this.playerFilePath);
+    public String build() {
+        String mainCode = getBuildDate() + readFileAsString(this.playerFilePath);
         String innerContent = buildInnerContent();
         String content = mainCode.replaceAll("[\r][\n]}$", "\n" + innerContent + "\n}");
         return resolvePackage(resolveImport(content.replace("public class", "class")));
     }
 
-    private String buildInnerContent() throws IOException {
+
+    private String getBuildDate() {
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+        return String.format("/**\n" +
+                "* Built at : %s\n" +
+                " */", dtf.format(now));
+    }
+
+    private String buildInnerContent() {
         return prepareInnerContent(readFiles(this.playerFilePath.getParent()));
     }
 
