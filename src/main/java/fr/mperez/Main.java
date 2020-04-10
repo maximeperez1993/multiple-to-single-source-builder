@@ -6,6 +6,7 @@ import java.awt.datatransfer.StringSelection;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.Properties;
@@ -24,11 +25,19 @@ public class Main {
         String finalContent = new Aggregator(playerPath).build();
 
         String outputPath = config.read(OUTPUT_PATH_PROPERTY);
-        Files.write(Paths.get(outputPath), finalContent.getBytes(), StandardOpenOption.CREATE);
+        generateOutputFile(outputPath, finalContent);
 
         if (config.readAsBoolean(COPY_TO_CLIPBOARD_BOOLEAN_PROPERTY)) {
             copyToClipboard(finalContent);
         }
+    }
+
+    private static void generateOutputFile(String outputFileName, String content) throws IOException {
+        Path outputPath = Paths.get(outputFileName);
+        if (!Files.exists(outputPath.getParent())) {
+            Files.createDirectories(Files.createDirectory(outputPath.getParent()));
+        }
+        Files.write(outputPath, content.getBytes(), StandardOpenOption.CREATE);
     }
 
     private static void copyToClipboard(String content) {
