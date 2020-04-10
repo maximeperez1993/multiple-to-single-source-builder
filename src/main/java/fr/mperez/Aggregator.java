@@ -40,7 +40,7 @@ public class Aggregator {
         LocalDateTime now = LocalDateTime.now();
         return String.format("/**\n" +
                 "* Built at : %s\n" +
-                " */", dtf.format(now));
+                "*/", dtf.format(now));
     }
 
     private String buildInnerContent() {
