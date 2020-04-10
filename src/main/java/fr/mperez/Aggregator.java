@@ -1,3 +1,5 @@
+package fr.mperez;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,7 +11,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Main {
+public class Aggregator {
+
 
     private static final Pattern packagePattern = Pattern.compile("package (?<PACKAGE>[a-z0-9.]+);[\r]*[\n]");
     private static final Pattern importPattern = Pattern.compile("import (?<PACKAGE>[a-zA-Z0-9.*]+);[\r]*[\n]");
@@ -17,7 +20,7 @@ public class Main {
     private final Path playerFilePath;
     private final String playerFile;
 
-    public Main(String playerFilePath) {
+    public Aggregator(String playerFilePath) {
         this.playerFilePath = Paths.get(playerFilePath);
         this.playerFile = this.playerFilePath.getFileName().toString();
     }
@@ -26,7 +29,7 @@ public class Main {
         String mainCode = readFileAsString(this.playerFilePath);
         String innerContent = buildInnerContent();
         String content = mainCode.replaceAll("[\r][\n]}$", "\n" + innerContent + "\n}");
-        return resolvePackage(resolveImport(content.replace("public class","class")));
+        return resolvePackage(resolveImport(content.replace("public class", "class")));
     }
 
     private String buildInnerContent() throws IOException {
@@ -90,11 +93,4 @@ public class Main {
         return importString + "\n" + content;
     }
 
-    public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.err.println("Need path to main source file (Player.java for Codingame)");
-            return;
-        }
-        System.out.println(new Main(args[0]).build());
-    }
 }
