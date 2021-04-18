@@ -48,8 +48,8 @@ public class Main {
 
     private static Properties readConfigFile() {
         Properties configFile = new Properties();
-        try {
-            configFile.load(new FileReader(CONFIG_FILE_PATH));
+        try (FileReader fileReader = new FileReader(CONFIG_FILE_PATH)) {
+            configFile.load(fileReader);
             return configFile;
         } catch (IOException ex) {
             throw new IllegalStateException("Need config file " + CONFIG_FILE_PATH);
