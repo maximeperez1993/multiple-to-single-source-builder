@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -15,29 +16,34 @@ import java.util.stream.Stream;
 
 public class Aggregator {
 
-
     private static final Pattern packagePattern = Pattern.compile("package (?<PACKAGE>[a-z0-9.]+);[\r]*[\n]");
     private static final Pattern importPattern = Pattern.compile("import (?<PACKAGE>[a-zA-Z0-9.*]+);[\r]*[\n]");
 
+    private final Clock clock;
     private final Path playerFilePath;
     private final String playerFile;
 
-    public Aggregator(String playerFilePath) {
+    public Aggregator(String playerFilePath, Clock clock) {
         this.playerFilePath = Paths.get(playerFilePath);
         this.playerFile = this.playerFilePath.getFileName().toString();
+        this.clock = clock;
+    }
+
+    public Aggregator(String playerFilePath) {
+        this(playerFilePath, Clock.systemDefaultZone());
     }
 
     public String build() {
         String mainCode = getBuildDate() + readFileAsString(this.playerFilePath);
         String innerContent = buildInnerContent();
-        String content = mainCode.replaceAll("[\r][\n]}$", "\n" + innerContent + "\n}");
+        String content = mainCode.replaceAll("((\n)|(\r\n)|(\r))}$", "\n" + innerContent + "\n}");
         return resolvePackage(resolveImport(content.replace("public class", "class")));
     }
 
 
     private String getBuildDate() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(this.clock);
         return String.format("/**\n" +
                 "* Built at : %s\n" +
                 "*/", dtf.format(now));
